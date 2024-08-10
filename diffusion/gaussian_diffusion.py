@@ -276,7 +276,10 @@ class GaussianDiffusion:
 
         B, C = x.shape[:2]
         assert t.shape == (B,)
+        t1 = time.time()
         model_output = model(x, t, **model_kwargs)
+        t2 = time.time()
+        print("model time ", t2-t1)
         if isinstance(model_output, tuple):
             model_output, extra = model_output
         else:
