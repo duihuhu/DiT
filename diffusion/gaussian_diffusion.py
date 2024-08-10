@@ -9,7 +9,7 @@ import math
 import numpy as np
 import torch as th
 import enum
-
+import time
 from .diffusion_utils import discretized_gaussian_log_likelihood, normal_kl
 
 
@@ -497,6 +497,8 @@ class GaussianDiffusion:
 
         for i in indices:
             t = th.tensor([i] * shape[0], device=device)
+            t1 = time.time()
+            print("indice ",)
             with th.no_grad():
                 out = self.p_sample(
                     model,
@@ -509,7 +511,8 @@ class GaussianDiffusion:
                 )
                 yield out
                 img = out["sample"]
-
+            t2 = time.time()
+            print("p_sample_loop_progressive ", t2-t1)
     def ddim_sample(
         self,
         model,
