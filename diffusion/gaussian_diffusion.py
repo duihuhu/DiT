@@ -407,16 +407,17 @@ class GaussianDiffusion:
             denoised_fn=denoised_fn,
             model_kwargs=model_kwargs,
         )
+        t2 = time.time()
         noise = th.randn_like(x)
         nonzero_mask = (
             (t != 0).float().view(-1, *([1] * (len(x.shape) - 1)))
         )  # no noise when t == 0
-        t2 = time.time()
+        t3 = time.time()
         if cond_fn is not None:
             out["mean"] = self.condition_mean(cond_fn, out, x, t, model_kwargs=model_kwargs)
         sample = out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
-        t3 = time.time()
-        print("p_sample ", t3-t2, t2-t1)
+        t4 = time.time()
+        print("p_sample ",t4-t3, t3-t2, t2-t1)
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
 
     def p_sample_loop(
