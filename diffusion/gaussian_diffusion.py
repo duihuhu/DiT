@@ -494,11 +494,9 @@ class GaussianDiffusion:
             from tqdm.auto import tqdm
 
             indices = tqdm(indices)
-
+        t1 = time.time()
         for i in indices:
             t = th.tensor([i] * shape[0], device=device)
-            t1 = time.time()
-            print("indice ",)
             with th.no_grad():
                 out = self.p_sample(
                     model,
@@ -511,8 +509,8 @@ class GaussianDiffusion:
                 )
                 yield out
                 img = out["sample"]
-            t2 = time.time()
-            print("p_sample_loop_progressive ", t2-t1)
+        t2 = time.time()
+        print("p_sample_loop_progressive ",i , t2-t1)
     def ddim_sample(
         self,
         model,
