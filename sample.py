@@ -44,33 +44,32 @@ def main(args):
     diffusion = create_diffusion(str(args.num_sampling_steps))
     vae = AutoencoderKL.from_pretrained(f"/home/jovyan/models/sd-vae-ft-mse/models/snapshots/31f26fdeee1355a5c34592e401dd41e45d25a493").to(device)
 
-    for i in range(2):
-        # Labels to condition the model with (feel free to change):
-        # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
-        class_labels = [207]
-        # Create sampling noise:
-        n = len(class_labels)
-        z = torch.randn(n, 4, latent_size, latent_size, device=device)
-        y = torch.tensor(class_labels, device=device)
+    # Labels to condition the model with (feel free to change):
+    # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
+    class_labels = [207]
+    # Create sampling noise:
+    n = len(class_labels)
+    z = torch.randn(n, 4, latent_size, latent_size, device=device)
+    y = torch.tensor(class_labels, device=device)
 
-        # Setup classifier-free guidance:
-        z = torch.cat([z, z], 0)
-        y_null = torch.tensor([1000] * n, device=device)
-        y = torch.cat([y, y_null], 0)
-        model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
+    # Setup classifier-free guidance:
+    z = torch.cat([z, z], 0)
+    y_null = torch.tensor([1000] * n, device=device)
+    y = torch.cat([y, y_null], 0)
+    model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
 
-        # Sample images:
-        t1 = time.time()
-        samples = diffusion.p_sample_loop(
-            model.forward_with_cfg, z.shape, z, clip_denoised=False, model_kwargs=model_kwargs, progress=True, device=device
-        )
-        t2 = time.time()
-        samples, _ = samples.chunk(2, dim=0)  # Remove null class samples
-        samples = vae.decode(samples / 0.18215).sample
-        t3 = time.time()
-        print("dit sample ", t3-t2, t2-t1)
-        # Save and display images:
-        save_image(samples, "sample.png", nrow=4, normalize=True, value_range=(-1, 1))
+    # Sample images:
+    t1 = time.time()
+    samples = diffusion.p_sample_loop(
+        model.forward_with_cfg, z.shape, z, clip_denoised=False, model_kwargs=model_kwargs, progress=True, device=device
+    )
+    t2 = time.time()
+    samples, _ = samples.chunk(2, dim=0)  # Remove null class samples
+    samples = vae.decode(samples / 0.18215).sample
+    t3 = time.time()
+    print("diffusion p_sample_loop ", t3-t2, t2-t1)
+    # Save and display images:
+    save_image(samples, "sample.png", nrow=4, normalize=True, value_range=(-1, 1))
 
 
 if __name__ == "__main__":

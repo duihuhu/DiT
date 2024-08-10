@@ -199,7 +199,7 @@ class GaussianDiffusion:
         self.posterior_mean_coef2 = (
             (1.0 - self.alphas_cumprod_prev) * np.sqrt(alphas) / (1.0 - self.alphas_cumprod)
         )
-
+        self.total_time = 0
     def q_mean_variance(self, x_start, t):
         """
         Get the distribution q(x_t | x_0).
@@ -276,10 +276,7 @@ class GaussianDiffusion:
 
         B, C = x.shape[:2]
         assert t.shape == (B,)
-        t1 = time.time()
         model_output = model(x, t, **model_kwargs)
-        t2 = time.time()
-        print("model time ", t2-t1)
         if isinstance(model_output, tuple):
             model_output, extra = model_output
         else:
@@ -513,7 +510,8 @@ class GaussianDiffusion:
                 yield out
                 img = out["sample"]
         t2 = time.time()
-        print("p_sample_loop_progressive ",i , t2-t1)
+        self.total_time = self.total_time + t2 - t1
+        print("p_sample " , self.total_time)
     def ddim_sample(
         self,
         model,
@@ -682,7 +680,6 @@ class GaussianDiffusion:
                 )
                 yield out
                 img = out["sample"]
-
     def _vb_terms_bpd(
             self, model, x_start, x_t, t, clip_denoised=True, model_kwargs=None
     ):
