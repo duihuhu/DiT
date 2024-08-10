@@ -16,6 +16,7 @@ from diffusers.models import AutoencoderKL
 from download import find_model
 from models import DiT_models
 import argparse
+import time
 
 
 def main(args):
@@ -41,7 +42,7 @@ def main(args):
     model.load_state_dict(state_dict)
     model.eval()  # important!
     diffusion = create_diffusion(str(args.num_sampling_steps))
-    vae = AutoencoderKL.from_pretrained(f"stabilityai/sd-vae-ft-{args.vae}").to(device)
+    vae = AutoencoderKL.from_pretrained(f"/home/jovyan/models/sd-vae-ft-mse/models/snapshots/31f26fdeee1355a5c34592e401dd41e45d25a493").to(device)
 
     # Labels to condition the model with (feel free to change):
     class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
@@ -58,12 +59,15 @@ def main(args):
     model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
 
     # Sample images:
+    t1 = time.time()
     samples = diffusion.p_sample_loop(
         model.forward_with_cfg, z.shape, z, clip_denoised=False, model_kwargs=model_kwargs, progress=True, device=device
     )
+    t2 = time.time()
     samples, _ = samples.chunk(2, dim=0)  # Remove null class samples
     samples = vae.decode(samples / 0.18215).sample
-
+    t3 = time.time()
+    print("dit smaple ", t3-t2, t2-t1)
     # Save and display images:
     save_image(samples, "sample.png", nrow=4, normalize=True, value_range=(-1, 1))
 
