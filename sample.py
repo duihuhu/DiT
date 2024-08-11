@@ -49,14 +49,14 @@ def main(args):
     class_labels = [207]
     # Create sampling noise:
     n = len(class_labels)
-    # z = torch.randn(n, 4, latent_size, latent_size, device=device)
+    z = torch.randn(n, 4, latent_size, latent_size, device=device)
     # y = torch.tensor(class_labels, device=device)
 
     # Setup classifier-free guidance:
     z = torch.cat([z, z], 0)
     y_null = torch.tensor([1000] * n, device=device)
-    y = torch.cat([y, y_null], 0)
-    model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
+    # y = torch.cat([y, y_null], 0)
+    model_kwargs = dict(y=y_null, cfg_scale=args.cfg_scale)
 
     # Sample images:
     t1 = time.time()
