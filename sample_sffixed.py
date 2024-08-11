@@ -69,7 +69,7 @@ def main(args):
     # Create sampling noise:
     n = len(class_labels)
     z = torch.cat([start_latent] * 2, 0)  # Duplicate latent representation for guidance
-    y = torch.tensor(class_labels * 2, device=device)
+    y = torch.tensor(class_labels, device=device)
     y_null = torch.tensor([1000] * n, device=device)
     y = torch.cat([y, y_null], 0)
     model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
