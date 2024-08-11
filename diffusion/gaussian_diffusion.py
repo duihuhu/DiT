@@ -499,6 +499,7 @@ class GaussianDiffusion:
 
             indices = tqdm(indices)
         for i in indices:
+            print("indices ", i)
             t = th.tensor([i] * shape[0], device=device)
             with th.no_grad():
                 out = self.p_sample(
