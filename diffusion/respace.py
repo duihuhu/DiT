@@ -28,6 +28,7 @@ def space_timesteps(num_timesteps, section_counts):
                            DDIM paper.
     :return: a set of diffusion steps from the original process to use.
     """
+    print("space_timesteps ", num_timesteps, section_counts)
     if isinstance(section_counts, str):
         if section_counts.startswith("ddim"):
             desired_count = int(section_counts[len("ddim") :])
