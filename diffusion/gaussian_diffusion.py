@@ -277,6 +277,7 @@ class GaussianDiffusion:
         B, C = x.shape[:2]
         assert t.shape == (B,)
         model_output = model(x, t, **model_kwargs)
+        th.cuda.synchronize()
         t2 = time.time()
         if isinstance(model_output, tuple):
             model_output, extra = model_output
@@ -499,7 +500,6 @@ class GaussianDiffusion:
 
             indices = tqdm(indices)
         for i in indices:
-            print("indices ", i)
             t = th.tensor([i] * shape[0], device=device)
             with th.no_grad():
                 out = self.p_sample(
