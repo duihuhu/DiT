@@ -87,7 +87,7 @@ def main(args):
     t3 = time.time()
     print("diffusion p_sample_loop ", t3-t2, t2-t1)
     # Save and display images:
-    save_image(samples, "sample.png", nrow=4, normalize=True, value_range=(-1, 1))
+    save_image(samples, "sample_fixed.png", nrow=4, normalize=True, value_range=(-1, 1))
 
 
 if __name__ == "__main__":
