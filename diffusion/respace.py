@@ -28,7 +28,6 @@ def space_timesteps(num_timesteps, section_counts):
                            DDIM paper.
     :return: a set of diffusion steps from the original process to use.
     """
-    print("space_timesteps ", num_timesteps, section_counts)
     if isinstance(section_counts, str):
         if section_counts.startswith("ddim"):
             desired_count = int(section_counts[len("ddim") :])
@@ -39,10 +38,14 @@ def space_timesteps(num_timesteps, section_counts):
                 f"cannot create exactly {num_timesteps} steps with an integer stride"
             )
         section_counts = [int(x) for x in section_counts.split(",")]
+
     size_per = num_timesteps // len(section_counts)
     extra = num_timesteps % len(section_counts)
     start_idx = 0
     all_steps = []
+
+    print("space_timesteps ", num_timesteps, section_counts, len(section_counts), size_per, extra)
+
     for i, section_count in enumerate(section_counts):
         size = size_per + (1 if i < extra else 0)
         if size < section_count:
