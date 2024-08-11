@@ -48,7 +48,7 @@ def main(args):
     # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
     class_labels = [207]
     # Create sampling noise:
-    # n = len(class_labels)
+    n = len(class_labels)
     # z = torch.randn(n, 4, latent_size, latent_size, device=device)
     # y = torch.tensor(class_labels, device=device)
 
