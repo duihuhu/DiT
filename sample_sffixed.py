@@ -18,6 +18,9 @@ from models import DiT_models
 import argparse
 import time
 
+from PIL import Image
+from torchvision import transforms
+
 
 def main(args):
     # Setup PyTorch:
@@ -47,13 +50,26 @@ def main(args):
     # Labels to condition the model with (feel free to change):
     # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
     class_labels = [207]
+    
+    # Load start image and convert it to tensor
+    start_image_path = 'start.png'
+    start_image = Image.open(start_image_path).convert('RGB')
+    # Define the transformation to match model input size
+    transform = transforms.Compose([
+        transforms.Resize((latent_size * 8, latent_size * 8)),  # Adjust size as needed
+        transforms.ToTensor(),
+    ])
+    # Apply transformation and add batch dimension
+    start_image_tensor = transform(start_image).unsqueeze(0).to(device)
+    # Encode the start image to get the initial latent representation
+    with torch.no_grad():
+        start_latent = vae.encode(start_image_tensor).latent_dist.sample()
+
+
     # Create sampling noise:
     n = len(class_labels)
-    z = torch.randn(n, 4, latent_size, latent_size, device=device)
-    y = torch.tensor(class_labels, device=device)
-
-    # Setup classifier-free guidance:
-    z = torch.cat([z, z], 0)
+    z = torch.cat([start_latent] * 2, 0)  # Duplicate latent representation for guidance
+    y = torch.tensor(class_labels * 2, device=device)
     y_null = torch.tensor([1000] * n, device=device)
     y = torch.cat([y, y_null], 0)
     model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
