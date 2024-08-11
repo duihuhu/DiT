@@ -31,7 +31,7 @@ def main(args):
     z = torch.randn(1, 4, latent_size, latent_size, device=device)
 
     # Setup without classifier-free guidance:
-    model_kwargs = dict()  # No labels needed
+    model_kwargs = dict(y=None, cfg_scale=None)  # Provide default values or None
 
     # Sample images:
     t1 = time.time()
