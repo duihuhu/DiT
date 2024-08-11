@@ -59,6 +59,8 @@ def main(args):
     model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
 
     print("z.shape ", z.shape)
+    print("y.shape ", y.shape)
+
     # Sample images:
     t1 = time.time()
     samples = diffusion.p_sample_loop(
