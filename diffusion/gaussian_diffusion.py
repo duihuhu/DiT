@@ -250,7 +250,7 @@ class GaussianDiffusion:
         )
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
-    def p_mean_variance(self, indice, model, x, t, clip_denoised=True, denoised_fn=None, model_kwargs=None):
+    def p_mean_variance(self, model, x, t, clip_denoised=True, denoised_fn=None, model_kwargs=None):
         """
         Apply the model to get p(x_{t-1} | x_t), as well as a prediction of
         the initial x, x_0.
@@ -276,7 +276,7 @@ class GaussianDiffusion:
 
         B, C = x.shape[:2]
         assert t.shape == (B,)
-        model_output = model(indice, x, t, **model_kwargs)
+        model_output = model(x, t, **model_kwargs)
         # th.cuda.synchronize()
         # t2 = time.time()
         if isinstance(model_output, tuple):
@@ -381,7 +381,6 @@ class GaussianDiffusion:
 
     def p_sample(
         self,
-        indice,
         model,
         x,
         t,
@@ -407,7 +406,6 @@ class GaussianDiffusion:
                  - 'pred_xstart': a prediction of x_0.
         """
         out = self.p_mean_variance(
-            indice,
             model,
             x,
             t,
@@ -506,7 +504,6 @@ class GaussianDiffusion:
             print("indices ",i)
             with th.no_grad():
                 out = self.p_sample(
-                    i,
                     model,
                     img,
                     t,

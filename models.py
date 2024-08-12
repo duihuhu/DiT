@@ -116,7 +116,7 @@ class DiTBlock(nn.Module):
             nn.Linear(hidden_size, 6 * hidden_size, bias=True)
         )
 
-    def forward(self, indice, x, c):
+    def forward(self, x, c):
         # t1 = time.time()
         shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=1)
         # torch.cuda.synchronize()
@@ -129,9 +129,8 @@ class DiTBlock(nn.Module):
         x = x + gate_msa.unsqueeze(1) * attention_data
         mlp_data = self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
         x = x + gate_mlp.unsqueeze(1) * mlp_data
-        if self.dep==1:
-            print("attention_data ", indice, self.dep, attention_data)
-            print("mlp_data ", indice, self.dep, mlp_data)
+        print("attention_data ", self.dep, attention_data)
+        print("mlp_data ", self.dep, mlp_data)
 
         # torch.cuda.synchronize()
         # t4 = time.time()
@@ -247,7 +246,7 @@ class DiT(nn.Module):
         imgs = x.reshape(shape=(x.shape[0], c, h * p, h * p))
         return imgs
 
-    def forward(self, indice, x, t, y):
+    def forward(self, x, t, y):
         """
         Forward pass of DiT.
         x: (N, C, H, W) tensor of spatial inputs (images or latent representations of images)
@@ -259,19 +258,19 @@ class DiT(nn.Module):
         y = self.y_embedder(y, self.training)    # (N, D)
         c = t + y                                # (N, D)
         for block in self.blocks:
-            x = block(indice, x, c)                      # (N, T, D)
+            x = block(x, c)                      # (N, T, D)
         x = self.final_layer(x, c)                # (N, T, patch_size ** 2 * out_channels)
         x = self.unpatchify(x)                   # (N, out_channels, H, W)
         return x
 
-    def forward_with_cfg(self, indice, x, t, y, cfg_scale):
+    def forward_with_cfg(self, x, t, y, cfg_scale):
         """
         Forward pass of DiT, but also batches the unconditional forward pass for classifier-free guidance.
         """
         # https://github.com/openai/glide-text2im/blob/main/notebooks/text2im.ipynb
         half = x[: len(x) // 2]
         combined = torch.cat([half, half], dim=0)
-        model_out = self.forward(indice, combined, t, y)
+        model_out = self.forward(combined, t, y)
         # For exact reproducibility reasons, we apply classifier-free guidance on only
         # three channels by default. The standard approach to cfg applies it to all channels.
         # This can be done by uncommenting the following line and commenting-out the line following that.
