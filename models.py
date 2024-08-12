@@ -116,17 +116,17 @@ class DiTBlock(nn.Module):
         )
 
     def forward(self, x, c):
-        t1 = time.time()
+        # t1 = time.time()
         shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=1)
-        torch.cuda.synchronize()
-        t2 = time.time()
+        # torch.cuda.synchronize()
+        # t2 = time.time()
         x = x + gate_msa.unsqueeze(1) * self.attn(modulate(self.norm1(x), shift_msa, scale_msa))
-        torch.cuda.synchronize()
-        t3 = time.time()
+        # torch.cuda.synchronize()
+        # t3 = time.time()
         x = x + gate_mlp.unsqueeze(1) * self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
-        torch.cuda.synchronize()
-        t4 = time.time()
-        print("forward ", t4-t3, t3-t2, t2-t1)
+        # torch.cuda.synchronize()
+        # t4 = time.time()
+        # print("forward ", t4-t3, t3-t2, t2-t1)
         return x
 
 

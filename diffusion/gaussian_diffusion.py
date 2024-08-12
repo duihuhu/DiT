@@ -270,15 +270,15 @@ class GaussianDiffusion:
                  - 'log_variance': the log of 'variance'.
                  - 'pred_xstart': the prediction for x_0.
         """
-        t1 = time.time()
+        # t1 = time.time()
         if model_kwargs is None:
             model_kwargs = {}
 
         B, C = x.shape[:2]
         assert t.shape == (B,)
         model_output = model(x, t, **model_kwargs)
-        th.cuda.synchronize()
-        t2 = time.time()
+        # th.cuda.synchronize()
+        # t2 = time.time()
         if isinstance(model_output, tuple):
             model_output, extra = model_output
         else:
@@ -309,7 +309,7 @@ class GaussianDiffusion:
             model_variance = _extract_into_tensor(model_variance, t, x.shape)
             model_log_variance = _extract_into_tensor(model_log_variance, t, x.shape)
         
-        t3 = time.time()
+        # t3 = time.time()
 
         def process_xstart(x):
             if denoised_fn is not None:
@@ -326,8 +326,8 @@ class GaussianDiffusion:
             )
         model_mean, _, _ = self.q_posterior_mean_variance(x_start=pred_xstart, x_t=x, t=t)
         
-        t4 = time.time()
-        print("p_mean_variance ", t4-t3, t3-t2, t2-t1)
+        # t4 = time.time()
+        # print("p_mean_variance ", t4-t3, t3-t2, t2-t1)
         assert model_mean.shape == model_log_variance.shape == pred_xstart.shape == x.shape
         return {
             "mean": model_mean,
