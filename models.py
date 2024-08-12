@@ -102,8 +102,9 @@ class DiTBlock(nn.Module):
     """
     A DiT block with adaptive layer norm zero (adaLN-Zero) conditioning.
     """
-    def __init__(self, hidden_size, num_heads, mlp_ratio=4.0, **block_kwargs):
+    def __init__(self, dep, hidden_size, num_heads, mlp_ratio=4.0, **block_kwargs):
         super().__init__()
+        self.dep = dep
         self.norm1 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
         self.attn = Attention(hidden_size, num_heads=num_heads, qkv_bias=True, **block_kwargs)
         self.norm2 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
@@ -115,7 +116,7 @@ class DiTBlock(nn.Module):
             nn.Linear(hidden_size, 6 * hidden_size, bias=True)
         )
 
-    def forward(self, x, c):
+    def forward(self, indice, x, c):
         # t1 = time.time()
         shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=1)
         # torch.cuda.synchronize()
@@ -128,8 +129,8 @@ class DiTBlock(nn.Module):
         x = x + gate_msa.unsqueeze(1) * attention_data
         mlp_data = self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
         x = x + gate_mlp.unsqueeze(1) * mlp_data
-        print("attention_data ", attention_data)
-        print("mlp_data ", mlp_data)
+        print("attention_data ", indice, self.dep, attention_data)
+        print("mlp_data ", indice, self.dep, mlp_data)
 
         # torch.cuda.synchronize()
         # t4 = time.time()
@@ -189,7 +190,7 @@ class DiT(nn.Module):
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, hidden_size), requires_grad=False)
 
         self.blocks = nn.ModuleList([
-            DiTBlock(hidden_size, num_heads, mlp_ratio=mlp_ratio) for _ in range(depth)
+            DiTBlock(dep, hidden_size, num_heads, mlp_ratio=mlp_ratio) for dep in range(depth)
         ])
         self.final_layer = FinalLayer(hidden_size, patch_size, self.out_channels)
         self.initialize_weights()
@@ -245,7 +246,7 @@ class DiT(nn.Module):
         imgs = x.reshape(shape=(x.shape[0], c, h * p, h * p))
         return imgs
 
-    def forward(self, x, t, y):
+    def forward(self, indice, x, t, y):
         """
         Forward pass of DiT.
         x: (N, C, H, W) tensor of spatial inputs (images or latent representations of images)
@@ -257,7 +258,7 @@ class DiT(nn.Module):
         y = self.y_embedder(y, self.training)    # (N, D)
         c = t + y                                # (N, D)
         for block in self.blocks:
-            x = block(x, c)                      # (N, T, D)
+            x = block(indice, x, c)                      # (N, T, D)
         x = self.final_layer(x, c)                # (N, T, patch_size ** 2 * out_channels)
         x = self.unpatchify(x)                   # (N, out_channels, H, W)
         return x
