@@ -17,7 +17,33 @@ from download import find_model
 from models import DiT_models
 import argparse
 import time
+from PIL import Image
+import numpy as np
 
+def save_tensor_as_image(tensor, filename):
+    # 确保张量的维度是 (C, H, W) 或 (H, W, C)
+    if tensor.dim() == 4 and tensor.size(1) == 4:
+        tensor = tensor[0]  # 选择第一个样本
+    
+    # 将张量转换为 numpy 数组
+    tensor = tensor.squeeze().cpu().numpy()  # 去掉多余的维度，并移动到 CPU 上
+    if tensor.shape[0] == 4:
+        # 如果有4个通道，选择其中一个通道，通常情况下 RGB 图像有3个通道
+        tensor = tensor[:3]
+    
+    # 归一化到 [0, 255]
+    tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min()) * 255
+    tensor = tensor.astype(np.uint8)
+    
+    # 转换为图像并保存
+    if tensor.shape[0] == 1:
+        # 单通道图像
+        img = Image.fromarray(tensor[0], mode='L')
+    else:
+        # 多通道图像
+        img = Image.fromarray(np.transpose(tensor, (1, 2, 0)), mode='RGB')
+    
+    img.save(filename)
 
 def main(args):
     # Setup PyTorch:
@@ -48,10 +74,13 @@ def main(args):
     # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
     class_labels = [185]
     
-    class_labels_6 = [186]
+    class_labels_6 = [185]
     # Create sampling noise:
     n = len(class_labels)
     z = torch.randn(n, 4, latent_size, latent_size, device=device)
+    
+    save_tensor_as_image(z[0], 'noise_image.png')
+
     y = torch.tensor(class_labels, device=device)
     
     y6 = torch.tensor(class_labels_6, device=device)
