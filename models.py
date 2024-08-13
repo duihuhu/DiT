@@ -129,10 +129,6 @@ class DiTBlock(nn.Module):
         x = x + gate_msa.unsqueeze(1) * attention_data
         mlp_data = self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
         x = x + gate_mlp.unsqueeze(1) * mlp_data
-        if self.dep==2:
-            print("attention_data ", self.dep, attention_data)
-            print("mlp_data ", self.dep, mlp_data)
-
         # torch.cuda.synchronize()
         # t4 = time.time()
         # print("forward ", t4-t3, t3-t2, t2-t1)
