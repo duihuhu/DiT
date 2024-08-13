@@ -47,20 +47,30 @@ def main(args):
     # Labels to condition the model with (feel free to change):
     # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
     class_labels = [185]
+    
+    class_labels_6 = [186]
     # Create sampling noise:
     n = len(class_labels)
     z = torch.randn(n, 4, latent_size, latent_size, device=device)
     y = torch.tensor(class_labels, device=device)
+    
+    y6 = torch.tensor(class_labels_6, device=device)
 
     # Setup classifier-free guidance:
     z = torch.cat([z, z], 0)
     y_null = torch.tensor([1000] * n, device=device)
     y = torch.cat([y, y_null], 0)
+    
+    y6 = torch.cat([y6, y_null], 0)
+    
     model_kwargs = dict(y=y, cfg_scale=args.cfg_scale)
+    
+    model_kwargs6 = dict(y=y6, cfg_scale=args.cfg_scale)
+
     # Sample images:
     t1 = time.time()
     samples = diffusion.p_sample_loop(
-        model.forward_with_cfg, z.shape, z, clip_denoised=False, model_kwargs=model_kwargs, progress=True, device=device
+        model.forward_with_cfg, z.shape, z, clip_denoised=False, model_kwargs=model_kwargs, model_kwargs6=model_kwargs6, progress=True, device=device
     )
     t2 = time.time()
     samples, _ = samples.chunk(2, dim=0)  # Remove null class samples
