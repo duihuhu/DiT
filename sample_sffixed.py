@@ -49,10 +49,10 @@ def main(args):
     
     # Labels to condition the model with (feel free to change):
     # class_labels = [207, 360, 387, 974, 88, 979, 417, 279]
-    class_labels = [207]
+    class_labels = [186]
     
     # Load start image and convert it to tensor
-    start_image_path = 'start.png'
+    start_image_path = 'sample.png'
     start_image = Image.open(start_image_path).convert('RGB')
     # Define the transformation to match model input size
     transform = transforms.Compose([
