@@ -3,7 +3,7 @@
 
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-
+#python sample.py  --image-size 256  --seed 1
 """
 Sample new images from a pre-trained DiT.
 """
